@@ -1,0 +1,67 @@
+---
+
+# Sensu install configuration
+sensu_apt_key_url: "https://sensu.global.ssl.fastly.net/apt/pubkey.gpg"
+sensu_apt_repositories:
+  - "deb https://sensu.global.ssl.fastly.net/apt {{ ansible_distribution_release | lower }} main"
+sensu_packages:
+  - sensu
+
+# Sensu services
+sensu_server_daemon: sensu-server
+sensu_server_daemon_enabled: yes
+sensu_client_daemon: sensu-client
+sensu_client_daemon_enabled: yes
+sensu_api_daemon: sensu-api
+sensu_api_daemon_enabled: yes
+
+# Sensu basic configuration
+sensu_config:
+  client:
+    name: ubuntu
+    address: "{{ ansible_host }}"
+    environment: development
+    subscriptions:
+      - dev
+      - ubuntu
+    socket:
+      bind: "{{ ansible_host }}"
+      port: 3030
+  api:
+    host: "{{ ansible_host }}"
+    bind: 0.0.0.0
+    port: 4567
+  transport:
+    name: rabbitmq
+    reconnect_on_error: "true"
+  redis:
+    host: "{{ ansible_host }}"
+    port: 6379
+  rabbitmq:
+    host: "{{ ansible_host }}"
+    port: 5672
+    vhost: "/sensu"
+    user: sensu
+    password: secret
+    heartbeat: 30
+    prefetch: 50
+
+# Sensu dashboard configuration
+sensu_dashboard_config:
+
+# Uchiwa configuration
+sensu_uchiwa_enabled: yes
+sensu_uchiwa_packages:
+  - uchiwa
+sensu_uchiwa_daemon: uchiwa
+
+sensu_uchiwa_config:
+  sensu:
+    name: local
+    host: "{{ ansible_host }}"
+    port: 4567
+    timeout: 10
+  uchiwa:
+    host: "{{ ansible_host }}"
+    port: 3000
+    refresh: 10

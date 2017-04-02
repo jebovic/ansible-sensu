@@ -1,0 +1,55 @@
+---
+
+- name: install key
+  apt_key:
+    url: "{{ sensu_apt_key_url }}"
+    state: present
+  register: sensu_key_installed
+
+- name: add repos
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+    update_cache: no
+  with_items: "{{ sensu_apt_repositories }}"
+  when: sensu_key_installed|success
+  register: sensu_repo_installed
+
+- name: update apt cache
+  apt:
+    update_cache: yes
+  when: sensu_repo_installed|changed
+
+- name: install apt packages
+  apt:
+    name: "{{ item }}"
+    state: latest
+    install_recommends: no
+    update_cache: yes
+    cache_valid_time: 86400
+  with_items: "{{ sensu_packages }}"
+  when: sensu_repo_installed|success
+
+- name: config
+  template:
+    src: sensu.json.j2
+    dest: "/etc/sensu/conf.d/{{ item }}.json"
+  with_items: "{{ sensu_config }}"
+  notify:
+    - restart sensu server
+    - restart sensu api
+    - restart sensu client
+  tags: sensu_config
+
+- name: service start
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - "{{ sensu_server_daemon }}"
+    - "{{ sensu_api_daemon }}"
+    - "{{ sensu_client_daemon }}"
+
+- include: uchiwa.yml
+  when: sensu_uchiwa_enabled

@@ -1,0 +1,29 @@
+---
+
+- name: uchiwa > install apt packages
+  apt:
+    name: "{{ item }}"
+    state: latest
+    install_recommends: no
+    update_cache: yes
+    cache_valid_time: 86400
+  with_items: "{{ sensu_uchiwa_packages }}"
+  when: sensu_repo_installed|success
+
+- name: uchiwa > config
+  template:
+    src: uchiwa.json.j2
+    dest: /etc/sensu/uchiwa.json
+  with_items:
+    - "{{ sensu_uchiwa_config }}"
+  notify:
+    - restart uchiwa
+  tags: sensu_config
+
+- name: uchiwa > service start
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - "{{ sensu_uchiwa_daemon }}"
