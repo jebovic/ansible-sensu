@@ -46,6 +46,8 @@ sensu_config:
     heartbeat: 30
     prefetch: 50
 
+sensu_plugins: []
+
 # Sensu dashboard configuration
 sensu_dashboard_config:
 

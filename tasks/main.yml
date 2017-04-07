@@ -41,15 +41,35 @@
     - restart sensu client
   tags: sensu_config
 
-- name: service start
+- name: install plugins
+  gem:
+    name: "sensu-plugins-{{ item }}"
+    state: present
+    executable: /opt/sensu/embedded/bin/gem
+    user_install: no
+  with_items: "{{ sensu_plugins }}"
+  when: sensu_plugins | length() > 0
+
+- name: server > service start
   service:
-    name: "{{ item }}"
+    name: "{{ sensu_server_daemon }}"
     state: started
     enabled: yes
-  with_items:
-    - "{{ sensu_server_daemon }}"
-    - "{{ sensu_api_daemon }}"
-    - "{{ sensu_client_daemon }}"
+  when: sensu_server_daemon_enabled
+
+- name: api > service start
+  service:
+    name: "{{ sensu_api_daemon }}"
+    state: started
+    enabled: yes
+  when: sensu_api_daemon_enabled
+
+- name: client > service start
+  service:
+    name: "{{ sensu_client_daemon }}"
+    state: started
+    enabled: yes
+  when: sensu_client_daemon_enabled
 
 - include: uchiwa.yml
   when: sensu_uchiwa_enabled
