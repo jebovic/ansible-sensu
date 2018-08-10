@@ -30,6 +30,13 @@
   with_items: "{{ sensu_packages }}"
   when: sensu_repo_installed|success
 
+- name: add sensu user to admin group
+  user:
+    name: sensu
+    groups: "{{ admin_user_group }}"
+    append: yes
+  when: admin_user_group is defined
+
 - name: config
   template:
     src: sensu.json.j2
